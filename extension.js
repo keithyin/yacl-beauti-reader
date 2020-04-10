@@ -32,13 +32,11 @@ function activate(context) {
 				let level = levelcounter(cur_line_text);
 				if (level < level_tracer) {
 					level_tracer = level;
-					let key_txt = "";
-					for (var j = i + 1; j < totline; j++){
-						if (!check_if_field_has_key(cur_line_text)) break;
-						key_txt = editor.document.lineAt(j).text;
-						if (strip(key_txt) != "") break;
+					let key_of_scope = "";
+					if (check_if_scope_has_key(cur_line_text)) {
+						key_of_scope = get_key_of_scope(i, totline, editor);
 					}
-					let curlevelinfo = strip(cur_line_text) + strip(key_txt);
+					let curlevelinfo = strip(cur_line_text) + strip(key_of_scope);
 					curlevelinfo = to_exp_setting_fmt(curlevelinfo, level_tracer);
 					levelinfomation = curlevelinfo + levelinfomation;
 				}
@@ -95,7 +93,7 @@ function to_exp_setting_fmt(text, level) {
 	return text;
 }
 
-function check_if_field_has_key(text) {
+function check_if_scope_has_key(text) {
 	// 包含 @ 的 scope 是有 key 的
 	var pos = text.search("@");
 	return pos >= 0;
@@ -117,6 +115,16 @@ function is_scope_line(text){
 	let reg = /\[.*\]/i;
 	let res = reg.exec(text);
 	return res != null;
+}
+
+function get_key_of_scope(curpos, totline, editor) {
+	// 如果是有 key 的scope 就可以用这个函数来找到他的 key
+	let key_of_scope = "";
+	for (var j = curpos + 1; j < totline; j++){
+		key_of_scope = editor.document.lineAt(j).text;
+		if (strip(key_of_scope) != "") break;
+	}
+	return key_of_scope;
 }
 
 module.exports = {
