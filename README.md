@@ -39,6 +39,17 @@ add current line's param name
 ### 0.0.3
 fix bug
 
+### 0.0.4
+add right-click function
+
+### 0.0.6
+output information through output pannel
+
+### 0.0.7
+fix bug
+
+### 0.0.8
+using two output channel to show infomation separately
 
 -----------------------------------------------------------------------------------------------------------
 

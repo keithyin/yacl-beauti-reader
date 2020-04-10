@@ -3,7 +3,7 @@
 	"displayName": "yacl-beauti-reader",
 	"description": "more comfortable when modify conf",
 	"publisher": "keithyin",
-	"version": "0.0.4",
+	"version": "0.0.8",
 	"engines": {
 		"vscode": "^1.36.0"
 	},
@@ -20,7 +20,15 @@
 				"command": "yacl-beauti-reader.helloWorld",
 				"title": "yacl beautify"
 			}
-		]
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "yacl-beauti-reader.helloWorld",
+					"group": "navigation"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"lint": "eslint .",
