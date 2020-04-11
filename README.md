@@ -51,6 +51,12 @@ fix bug
 ### 0.0.8
 using two output channel to show infomation separately
 
+### 0.0.9
+add confdiff generator, right click to call it
+
+### 0.1.1
+add "onCommand:yacl-beauti-reader.confdiffGenerator" to package.json
+
 -----------------------------------------------------------------------------------------------------------
 
 

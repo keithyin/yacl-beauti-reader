@@ -1,53 +1,62 @@
 {
-	"name": "yacl-beauti-reader",
-	"displayName": "yacl-beauti-reader",
-	"description": "more comfortable when modify conf",
-	"publisher": "keithyin",
-	"version": "0.0.8",
-	"engines": {
-		"vscode": "^1.36.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:yacl-beauti-reader.helloWorld"
-	],
-	"main": "./extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "yacl-beauti-reader.helloWorld",
-				"title": "yacl beautify"
-			}
-		],
-		"menus": {
-			"editor/context": [
-				{
-					"command": "yacl-beauti-reader.helloWorld",
-					"group": "navigation"
-				}
-			]
-		}
-	},
-	"scripts": {
-		"lint": "eslint .",
-		"pretest": "npm run lint",
-		"test": "node ./test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.36.0",
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.11.0",
-		"eslint": "^6.8.0",
-		"glob": "^7.1.6",
-		"mocha": "^7.1.1",
-		"typescript": "^3.8.3",
-		"vscode-test": "^1.3.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/keithyin/yacl-beauti-reader"
-	}
+    "name": "yacl-beauti-reader",
+    "displayName": "yacl-beauti-reader",
+    "description": "more comfortable when modify conf",
+    "publisher": "keithyin",
+    "version": "0.1.1",
+    "engines": {
+        "vscode": "^1.36.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:yacl-beauti-reader.helloWorld",
+        "onCommand:yacl-beauti-reader.confdiffGenerator"
+    ],
+    "main": "./extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "yacl-beauti-reader.helloWorld",
+                "title": "yacl beautify"
+            },
+            {
+                "command": "yacl-beauti-reader.confdiffGenerator",
+                "title": "Confdiff Generator"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "yacl-beauti-reader.helloWorld",
+                    "group": "navigation"
+                },
+                {
+                    "command": "yacl-beauti-reader.confdiffGenerator",
+                    "group": "navigation"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "lint": "eslint .",
+        "pretest": "npm run lint",
+        "test": "node ./test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.36.0",
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^7.0.2",
+        "@types/node": "^13.11.0",
+        "eslint": "^6.8.0",
+        "glob": "^7.1.6",
+        "mocha": "^7.1.1",
+        "typescript": "^3.8.3",
+        "vscode-test": "^1.3.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/keithyin/yacl-beauti-reader"
+    }
 }
