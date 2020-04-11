@@ -218,7 +218,7 @@ function get_key_of_scope(curpos, totline, editor) {
 
 function get_scope_insert_postion(line) {
     const document = vscode.window.activeTextEditor.document;
-    let level = levelcounter(document.lineAt(line).text)
+    let level = levelcounter(document.lineAt(line).text);
     let postion = 0;
     for (var i = line; i >= 0; i--) {
         let cur_line_text = document.lineAt(i).text;
@@ -232,7 +232,7 @@ function get_scope_insert_postion(line) {
 
         }
     }
-    return postion
+    return postion;
 }
 
 module.exports = {
