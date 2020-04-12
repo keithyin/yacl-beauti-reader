@@ -57,6 +57,9 @@ add confdiff generator, right click to call it
 ### 0.1.1
 add "onCommand:yacl-beauti-reader.confdiffGenerator" to package.json
 
+### 0.2.1
+exp param to line
+
 -----------------------------------------------------------------------------------------------------------
 
 

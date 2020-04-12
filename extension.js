@@ -45,10 +45,40 @@ function activate(context) {
             confdiffoutputchannel.show();
         });
 
+    let expparamposition = vscode.commands.registerCommand(
+        "yacl-beauti-reader.expParamPosition", function () {
+            let editor = vscode.window.activeTextEditor;
+            const options = {
+                ignoreFocusOut: true,
+                password: false,
+                prompt: "Please type the params (src_conf[src_id=1262].upin_title_time_interval)"
+            };
+            vscode.window.showInputBox(options).then(function (value) {
+                if (value === undefined || strip(value) === '') {
+                    vscode.window.showInformationMessage('Please type the params');
+                } else {
+                    value = strip(value);
+                    let params = value.split(".");
+                    console.log("params", params);
+                    let curline = editor.selection.active.line;
+                    let position = get_position_through_exp_params(params, 0, editor.document.lineCount, 0);
+                    if (position != curline) {
+                        vscode.commands.executeCommand("cursorMove", {
+                            to: position > curline ? "down" : "up",
+                            by: "line",
+                            select: false,
+                            value: position > curline ? (position - curline) : (curline - position)
+                        });
+                    }
+                }
+            });
+
+        });
 
 
     context.subscriptions.push(disposable);
     context.subscriptions.push(confdiff_generator);
+    context.subscriptions.push(expparamposition);
 }
 exports.activate = activate;
 
@@ -71,7 +101,7 @@ function whereami() {
                 level_tracer = level;
                 let key_of_scope = '';
                 if (check_whether_scope_has_key(cur_line_text)) {
-                    let result = get_key_of_scope(i, totline, editor);
+                    let result = get_key_of_scope(i, totline, editor.document);
                     key_of_scope = result["info"];
                 }
                 let curlevelinfo = to_exp_setting_fmt(strip(cur_line_text), strip(key_of_scope), level_tracer);
@@ -109,7 +139,7 @@ function confdiffgenerator() {
                 level_tracer = level;
                 let key_of_scope = '';
                 if (check_whether_scope_has_key(cur_line_text) && i != line) {
-                    let result = get_key_of_scope(i, totline, editor);
+                    let result = get_key_of_scope(i, totline, editor.document);
                     // else 部分是为了处理 插入的 line 是 一个key的情况. 例如:animation_mt_info[2].mt_id:16557
                     if (result["line"] != line) key_of_scope = result["info"];
                     else key_of_scope = get_scope_insert_postion(i) + "";
@@ -157,6 +187,8 @@ function strip(text) {
 }
 
 function to_exp_setting_fmt(scopetext, keytext, level) {
+    scopetext = strip(scopetext);
+    keytext = strip(keytext);
     if (scopetext + keytext == '') return "";
 
     var text = scopetext + keytext;
@@ -204,12 +236,12 @@ function is_scope_line(text) {
     return res != null;
 }
 
-function get_key_of_scope(curpos, totline, editor) {
+function get_key_of_scope(curpos, totline, document) {
     // 如果是有 key 的scope 就可以用这个函数来找到他的 key
     let key_of_scope = '';
     let j = curpos + 1;
     for (; j < totline; j++) {
-        key_of_scope = editor.document.lineAt(j).text;
+        key_of_scope = document.lineAt(j).text;
         if (strip(key_of_scope) != '') break;
     }
     var result = { "info": key_of_scope, "line": j };
@@ -233,6 +265,74 @@ function get_scope_insert_postion(line) {
         }
     }
     return postion;
+}
+
+function is_repeated_param(text) {
+    // 对 .conf 文件中, 有 @ 的是可重复参数, 对于 expparam 来说, 有 name[val] 是可重复的
+    return text.indexOf("@") != -1 || text.indexOf("[") != -1;
+}
+
+function wrap_repeated_param(text, counter) {
+    if (is_repeated_param(text)) {
+        text = text.replace("@", "");
+        return text + "[" + counter + "]";
+    }
+    return text;
+}
+
+function is_reapeated_param_matching(text1, text2) {
+    // 对于 repeated param 做了特殊处理, 不是 repeated 的 inner 参数 也可以使用
+    text1 = text1.replace("@", "").split("[")[0];
+    text2 = text2.replace("@", "").split("[")[0];
+    return text1 == text2;
+}
+
+
+function get_position_through_exp_params(params, iterpos, totline, curparamssegment) {
+    // params 是 src_conf[src_id=1262].upin_title_time_interval 通过split(".") 构成的 array
+    // iterpos 当前迭代所在的行数, totline: 当前文件的行数, curparamssegment: 匹配到什么位置了.
+    // curlevel: 当前的目标等级
+    const document = vscode.window.activeTextEditor.document;
+    if (curparamssegment >= params.length) return iterpos;
+    let curtarget = params[curparamssegment];
+    console.log("curtarget: ", curtarget, " from line=", iterpos + 1, "to search");
+    console.log("cursegment:", curparamssegment, "params.length=", params.length);
+    let repeated_param_counter = -1;
+    for (let i = iterpos; i < totline; i++) {
+        let curlinetext = document.lineAt(i).text;
+        if ((curparamssegment < params.length - 1) && is_scope_line(curlinetext)) {
+            let val = "";
+            let nextline = i + 1;
+            if (check_whether_scope_has_key(curlinetext)) {
+                let result = get_key_of_scope(i, totline, document);
+                val = to_exp_setting_fmt(curlinetext, result["info"], 0);
+                nextline = result["line"] + 1;
+            } else {
+                val = to_exp_setting_fmt(curlinetext, "", 0);
+            }
+            if (val == curtarget) {
+                return get_position_through_exp_params(params, nextline, totline, curparamssegment + 1);
+            }
+        } else if (curparamssegment == params.length - 1 && !is_scope_line(curlinetext)) {
+            // 参数层级的最后一级必然不是 scope line
+            // 对于@param 要特殊处理一下
+            console.log("currentline=", get_param_name(curlinetext), "position=", i);
+            if (is_repeated_param(curtarget)) {
+                if (is_reapeated_param_matching(curtarget, get_param_name(curlinetext))) {
+                    repeated_param_counter++;
+                }
+                console.log("repeated_param_counter=", repeated_param_counter);
+                if (wrap_repeated_param(get_param_name(curlinetext), repeated_param_counter) == curtarget) {
+                    return i;
+                }
+            } else {
+                if (get_param_name(curlinetext) == curtarget) return i;
+            }
+        } else if (curparamssegment == params.length - 1 && is_scope_line(curlinetext)) {
+            break;
+        }
+    }
+    return -1;
 }
 
 module.exports = {

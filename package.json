@@ -3,7 +3,7 @@
     "displayName": "yacl-beauti-reader",
     "description": "more comfortable when modify conf",
     "publisher": "keithyin",
-    "version": "0.1.1",
+    "version": "0.2.1",
     "engines": {
         "vscode": "^1.36.0"
     },
@@ -12,7 +12,8 @@
     ],
     "activationEvents": [
         "onCommand:yacl-beauti-reader.helloWorld",
-        "onCommand:yacl-beauti-reader.confdiffGenerator"
+        "onCommand:yacl-beauti-reader.confdiffGenerator",
+        "onCommand:yacl-beauti-reader.expParamPosition"
     ],
     "main": "./extension.js",
     "contributes": {
@@ -24,6 +25,10 @@
             {
                 "command": "yacl-beauti-reader.confdiffGenerator",
                 "title": "Confdiff Generator"
+            },
+            {
+                "command": "yacl-beauti-reader.expParamPosition",
+                "title": "Go ExpParams"
             }
         ],
         "menus": {
@@ -34,6 +39,10 @@
                 },
                 {
                     "command": "yacl-beauti-reader.confdiffGenerator",
+                    "group": "navigation"
+                },
+                {
+                    "command": "yacl-beauti-reader.expParamPosition",
                     "group": "navigation"
                 }
             ]
