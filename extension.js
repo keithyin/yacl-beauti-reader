@@ -96,11 +96,11 @@ function whereami() {
         let cur_line_text = editor.document.lineAt(i).text;
 
         if (is_scope_line(cur_line_text)) {
-            let level = levelcounter(cur_line_text);
+            let level = whichlevelami(cur_line_text);
             if (level < level_tracer) {
                 level_tracer = level;
                 let key_of_scope = '';
-                if (check_whether_scope_has_key(cur_line_text)) {
+                if (does_scope_has_key(cur_line_text)) {
                     let result = get_key_of_scope(i, totline, editor.document);
                     key_of_scope = result["info"];
                 }
@@ -134,17 +134,17 @@ function confdiffgenerator() {
         console.log("position=", cur_line_text);
 
         if (is_scope_line(cur_line_text)) {
-            let level = levelcounter(cur_line_text);
+            let level = whichlevelami(cur_line_text);
             if (level < level_tracer) {
                 level_tracer = level;
                 let key_of_scope = '';
-                if (check_whether_scope_has_key(cur_line_text) && i != line) {
+                if (does_scope_has_key(cur_line_text) && i != line) {
                     let result = get_key_of_scope(i, totline, editor.document);
                     // else 部分是为了处理 插入的 line 是 一个key的情况. 例如:animation_mt_info[2].mt_id:16557
                     if (result["line"] != line) key_of_scope = result["info"];
                     else key_of_scope = get_scope_insert_postion(i) + "";
 
-                } else if (check_whether_scope_has_key(cur_line_text) && i == line) {
+                } else if (does_scope_has_key(cur_line_text) && i == line) {
                     // 插入 scope 的格式为 [animation_mt_info[2]], 如果想用 [@animation_mt_info] 自己手动改就好
                     key_of_scope = get_scope_insert_postion(i) + "";
                 }
@@ -169,7 +169,7 @@ function confdiffgenerator() {
     return result;
 }
 
-function levelcounter(text) {
+function whichlevelami(text) {
     var textlength = text.length;
     var level = 0;
     for (var i = 0; i < textlength; i++) {
@@ -192,7 +192,7 @@ function to_exp_setting_fmt(scopetext, keytext, level) {
     if (scopetext + keytext == '') return "";
 
     var text = scopetext + keytext;
-    if (check_whether_scope_has_key(scopetext)) {
+    if (does_scope_has_key(scopetext)) {
         // 如果是key相关的, [..@match_type_params]match_type:14 -->
         // .match_type_params[match_type=14]
 
@@ -208,7 +208,7 @@ function to_exp_setting_fmt(scopetext, keytext, level) {
 }
 
 
-function check_whether_scope_has_key(text) {
+function does_scope_has_key(text) {
     // 包含 @ 的 scope 是有 key 的
     var pos = text.search('@');
     return pos >= 0;
@@ -230,7 +230,7 @@ function get_param_name_and_value(text) {
 }
 
 function is_scope_line(text) {
-    // 将 包含 [ ...] 的行称之为 scope line
+    // 将 包含 [ ] 的行称之为 scope line
     let reg = /\[.*\]/i;
     let res = reg.exec(text);
     return res != null;
@@ -238,6 +238,9 @@ function is_scope_line(text) {
 
 function get_key_of_scope(curpos, totline, document) {
     // 如果是有 key 的scope 就可以用这个函数来找到他的 key
+    if (!is_scope_line(document.lineAt(curpos).text))
+        return { "info": "", "line": curpos };
+
     let key_of_scope = '';
     let j = curpos + 1;
     for (; j < totline; j++) {
@@ -250,18 +253,17 @@ function get_key_of_scope(curpos, totline, document) {
 
 function get_scope_insert_postion(line) {
     const document = vscode.window.activeTextEditor.document;
-    let level = levelcounter(document.lineAt(line).text);
+    let level = whichlevelami(document.lineAt(line).text);
     let postion = 0;
     for (var i = line; i >= 0; i--) {
         let cur_line_text = document.lineAt(i).text;
         if (is_scope_line(cur_line_text) && i != line) {
-            let curlevel = levelcounter(cur_line_text);
+            let curlevel = whichlevelami(cur_line_text);
             if (level == curlevel) {
                 postion++;
             } else {
                 break;
             }
-
         }
     }
     return postion;
@@ -287,7 +289,6 @@ function is_reapeated_param_matching(text1, text2) {
     return text1 == text2;
 }
 
-
 function get_position_through_exp_params(params, iterpos, totline, curparamssegment) {
     // params 是 src_conf[src_id=1262].upin_title_time_interval 通过split(".") 构成的 array
     // iterpos 当前迭代所在的行数, totline: 当前文件的行数, curparamssegment: 匹配到什么位置了.
@@ -303,7 +304,7 @@ function get_position_through_exp_params(params, iterpos, totline, curparamssegm
         if ((curparamssegment < params.length - 1) && is_scope_line(curlinetext)) {
             let val = "";
             let nextline = i + 1;
-            if (check_whether_scope_has_key(curlinetext)) {
+            if (does_scope_has_key(curlinetext)) {
                 let result = get_key_of_scope(i, totline, document);
                 val = to_exp_setting_fmt(curlinetext, result["info"], 0);
                 nextline = result["line"] + 1;
