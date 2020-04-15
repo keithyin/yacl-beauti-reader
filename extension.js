@@ -30,7 +30,7 @@ function activate(context) {
             var line = result["line"];
             outputchannelwithoutline.appendLine(levelinfomation);
             outputchannelwithoutline.show();
-            levelinfomation = 'line=' + (line + 1) + ': ' + levelinfomation;
+            levelinfomation = 'line=' + line + ': ' + levelinfomation;
             outputchannelwithline.appendLine(levelinfomation);
             outputchannelwithline.show();
         });
