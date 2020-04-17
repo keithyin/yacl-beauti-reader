@@ -22,7 +22,7 @@ function activate(context) {
         vscode.window.createOutputChannel('LevelInfoWithoutLine');
 
     let disposable = vscode.commands.registerCommand(
-        'yacl-beauti-reader.helloWorld', function () {
+        'yacl-beauti-reader.whereami', function () {
             // The code you place here will be executed every time your command is
             // executed
             var result = whereami();
@@ -203,7 +203,7 @@ function to_exp_setting_fmt(scopetext, keytext, level) {
     } else {
         text = text.replace('[', '').replace(']', '').replace(/\./g, '');
     }
-    if (level > 0) text = '.' + text;
+    if (level > 0 && text.indexOf("DYNC") == -1) text = '.' + text;
     return text;
 }
 
