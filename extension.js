@@ -22,7 +22,7 @@ function activate(context) {
         vscode.window.createOutputChannel('LevelInfoWithoutLine');
 
     let disposable = vscode.commands.registerCommand(
-        'yacl-beauti-reader.helloWorld', function () {
+        'yacl-beauti-reader.whereami', function () {
             // The code you place here will be executed every time your command is
             // executed
             var result = whereami();
@@ -89,7 +89,7 @@ function whereami() {
     const editor = vscode.window.activeTextEditor;
     let line = editor.selection.active.line;
     let totline = editor.document.lineCount;
-    let level_tracer = 100;
+    let scope_level_tracer = 100;
     let levelinfomation = '';
 
     for (var i = line; i >= 0; i--) {
@@ -97,23 +97,28 @@ function whereami() {
 
         if (is_scope_line(cur_line_text)) {
             let level = whichlevelami(cur_line_text);
-            if (level < level_tracer) {
-                level_tracer = level;
+            if (level < scope_level_tracer) {
+                scope_level_tracer = level;
                 let key_of_scope = '';
                 if (does_scope_has_key(cur_line_text)) {
                     let result = get_key_of_scope(i, totline, editor.document);
                     key_of_scope = result["info"];
                 }
-                let curlevelinfo = to_exp_setting_fmt(strip(cur_line_text), strip(key_of_scope), level_tracer);
+                let curlevelinfo = to_exp_setting_fmt(strip(cur_line_text), strip(key_of_scope), scope_level_tracer);
                 levelinfomation = curlevelinfo + levelinfomation;
             }
-
         } else if (!is_scope_line(cur_line_text) && i == line) {
-            // 光标所在的行进行单独处理, 将 参数名搞出来, 然后前面加个. 就可以了
-            levelinfomation =
-                to_exp_setting_fmt("", get_param_name(cur_line_text), level_tracer);
+            // 当前行所指参数为[数组]的情况下，统计层级后打印
+            // 当前行所指参数为[非数组]的情况下，将 参数名搞出来, 然后前面加个. 就可以了
+            if (is_repeated_param(cur_line_text)) {
+                let param_level = get_level_of_param(i, editor.document);
+                let param_name = get_param_name(cur_line_text).replace("@", "") + '[' + String(param_level) + ']';
+                levelinfomation = to_exp_setting_fmt("", param_name, scope_level_tracer);
+            } else {
+                levelinfomation = to_exp_setting_fmt("", get_param_name(cur_line_text), scope_level_tracer);
+            }
         }
-        if (level_tracer == 0) break;
+        if (scope_level_tracer == 0) break;
     }
 
     var result = { "info": levelinfomation, "line": line + 1 };
@@ -125,7 +130,7 @@ function confdiffgenerator() {
     const document = editor.document;
     let line = editor.selection.active.line;
     let totline = document.lineCount;
-    let level_tracer = 100;
+    let scope_level_tracer = 100;
     let levelinfomation = '';
     let is_a_scope = is_scope_line(document.lineAt(line).text);
 
@@ -135,8 +140,8 @@ function confdiffgenerator() {
 
         if (is_scope_line(cur_line_text)) {
             let level = whichlevelami(cur_line_text);
-            if (level < level_tracer) {
-                level_tracer = level;
+            if (level < scope_level_tracer) {
+                scope_level_tracer = level;
                 let key_of_scope = '';
                 if (does_scope_has_key(cur_line_text) && i != line) {
                     let result = get_key_of_scope(i, totline, editor.document);
@@ -149,17 +154,25 @@ function confdiffgenerator() {
                     key_of_scope = get_scope_insert_postion(i) + "";
                 }
                 console.log("key of scope=", key_of_scope);
-                let curlevelinfo = to_exp_setting_fmt(strip(cur_line_text), strip(key_of_scope), level_tracer);
+                let curlevelinfo = to_exp_setting_fmt(strip(cur_line_text), strip(key_of_scope), scope_level_tracer);
                 levelinfomation = curlevelinfo + levelinfomation;
             }
 
         } else if (!is_scope_line(cur_line_text) && i == line) {
-            // 光标所在的行进行单独处理, 将 参数名搞出来, 然后前面加个. 就可以了
-            levelinfomation =
-                to_exp_setting_fmt("", get_param_name_and_value(cur_line_text), level_tracer);
+            // 当前行所指参数为[数组]的情况下，统计层级后打印
+            // 当前行所指参数为[非数组]的情况下，将 参数名搞出来, 然后前面加个. 就可以了
+            if (is_repeated_param(cur_line_text)) {
+                let param_level = get_level_of_param(i, editor.document);
+                let param_name = get_param_name(cur_line_text).replace("@", "") + '[' + String(param_level) + ']';
+                let param_value = get_param_value(cur_line_text);
+                console.log("Repeated param, name: ", param_name, ", value: ", param_value);
+                levelinfomation = to_exp_setting_fmt("", param_name + ":" + param_value, scope_level_tracer);
+            } else {
+                levelinfomation = to_exp_setting_fmt("", get_param_name_and_value(cur_line_text), scope_level_tracer);
+            }
             console.log(levelinfomation);
         }
-        if (level_tracer == 0) break;
+        if (scope_level_tracer == 0) break;
     }
     if (is_a_scope) {
         levelinfomation = "[" + levelinfomation + "]";
@@ -200,10 +213,10 @@ function to_exp_setting_fmt(scopetext, keytext, level) {
             ':', '=');
         text = text.replace(']', '[');
         text = text + ']';
-    } else {
+    } else if (scopetext != "") {
         text = text.replace('[', '').replace(']', '').replace(/\./g, '');
     }
-    if (level > 0) text = '.' + text;
+    if (level > 0 && text.indexOf("DYNC") == -1) text = '.' + text;
     return text;
 }
 
@@ -225,6 +238,15 @@ function get_param_name(text) {
     return param_name;
 }
 
+function get_param_value(text) {
+    let vals = text.split(':');
+    if (vals.length == 2) {
+        return strip(vals[1]);
+    } else {
+        return "";
+    }
+}
+
 function get_param_name_and_value(text) {
     return strip(text);
 }
@@ -234,6 +256,22 @@ function is_scope_line(text) {
     let reg = /\[.*\]/i;
     let res = reg.exec(text);
     return res != null;
+}
+
+function get_level_of_param(curpos, document) {
+    let j = curpos - 1;
+    let cur_line_text = "";
+    let result = 0;
+    for (; j>=0; j--) {
+        cur_line_text = document.lineAt(j).text;
+        if (!is_scope_line(cur_line_text) && is_repeated_param(cur_line_text)) {
+            result++;
+        } else {
+            break;
+        }
+    }
+    console.log("break now at line ", j, ", text: ", cur_line_text, ", result:", result);
+    return result;
 }
 
 function get_key_of_scope(curpos, totline, document) {
