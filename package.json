@@ -3,7 +3,7 @@
     "displayName": "yacl-beauti-reader",
     "description": "more comfortable when modify conf",
     "publisher": "keithyin",
-    "version": "0.2.1",
+    "version": "0.3.1",
     "engines": {
         "vscode": "^1.36.0"
     },
@@ -11,7 +11,7 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:yacl-beauti-reader.helloWorld",
+        "onCommand:yacl-beauti-reader.whereami",
         "onCommand:yacl-beauti-reader.confdiffGenerator",
         "onCommand:yacl-beauti-reader.expParamPosition"
     ],
@@ -19,8 +19,8 @@
     "contributes": {
         "commands": [
             {
-                "command": "yacl-beauti-reader.helloWorld",
-                "title": "yacl beautify"
+                "command": "yacl-beauti-reader.whereami",
+                "title": "Where Am I"
             },
             {
                 "command": "yacl-beauti-reader.confdiffGenerator",
@@ -34,16 +34,16 @@
         "menus": {
             "editor/context": [
                 {
-                    "command": "yacl-beauti-reader.helloWorld",
-                    "group": "navigation"
+                    "command": "yacl-beauti-reader.whereami",
+                    "group": "YaclBeautifyGroup@1"
                 },
                 {
                     "command": "yacl-beauti-reader.confdiffGenerator",
-                    "group": "navigation"
+                    "group": "YaclBeautifyGroup@2"
                 },
                 {
                     "command": "yacl-beauti-reader.expParamPosition",
-                    "group": "navigation"
+                    "group": "YaclBeautifyGroup@3"
                 }
             ]
         }

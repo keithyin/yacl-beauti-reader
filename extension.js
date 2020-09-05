@@ -259,12 +259,16 @@ function is_scope_line(text) {
 }
 
 function get_level_of_param(curpos, document) {
-    let j = curpos - 1;
     let cur_line_text = "";
+    let target_param_name = get_param_name(document.lineAt(curpos).text);
+    let j = curpos - 1;
     let result = 0;
     for (; j>=0; j--) {
         cur_line_text = document.lineAt(j).text;
-        if (!is_scope_line(cur_line_text) && is_repeated_param(cur_line_text)) {
+        let cur_param_name = get_param_name(document.lineAt(j).text);
+        if (!is_scope_line(cur_line_text) 
+                && is_repeated_param(cur_line_text) 
+                && target_param_name == cur_param_name) {
             result++;
         } else {
             break;

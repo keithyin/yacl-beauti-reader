@@ -1,7 +1,10 @@
 # yacl-beauti-reader README
+usage: 右击, 选择 相对应操作即可
+    * Where Am I: 输出当前参数的 level-info
 
-yacl-beauti-reader
-give level message through message panel
+    * Go ExpParam: 输入实验参数, 定位到配置文件所在的行
+
+    * Confdiff Generator: 生成当前行的 confdiff
 
 [github](https://github.com/keithyin/yacl-beauti-reader)
 
@@ -60,6 +63,11 @@ add "onCommand:yacl-beauti-reader.confdiffGenerator" to package.json
 ### 0.2.1
 exp param to line
 
+### 0.2.2
+fix line number bug
+
+### 0.3.1
+rename the commands
 -----------------------------------------------------------------------------------------------------------
 
 
